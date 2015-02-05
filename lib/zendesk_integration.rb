@@ -40,8 +40,9 @@ class ZendeskIntegration
 		end
 	end
 
-	def create_ticket subject, comment, submitter_id, priority, custom_fields
-		ZendeskAPI::Ticket.create(client, :subject => subject, :comment => { :value => comment }, :submitter_id => submitter_id, :priority => priority, :custom_fields => custom_fields)
+	def create_ticket subject, comment, submitter_id, requester_id, priority, custom_fields
+		ZendeskAPI::Ticket.create(client, :subject => subject, :comment => { :value => comment }, :submitter_id => submitter_id,
+		 :requester_id => requester_id, :priority => priority, :custom_fields => custom_fields)
 	end
 
 	def find_ticket id
@@ -59,6 +60,31 @@ class ZendeskIntegration
 	end
 
 	def forward_ticket_updates phone_number, message
-		HTTParty.post("http://beta.ongair.im/api/v1/base/send?token=#{ENV['ONGAIR_API_KEY']}", body: {phone_number: phone_number, text: message})
+		HTTParty.post("http://beta.ongair.im/api/v1/base/send?token=#{ENV['ONGAIR_API_KEY']}", body: {phone_number: phone_number, text: message, thread: true})
+	end
+
+	def find_user_by_phone_number phone_number
+		client.users.all do |user|
+			return user if user.phone == phone_number
+		end
+	end
+
+	def create_user name, phone_number
+		if find_user_by_phone_number(phone_number).nil?
+			user = ZendeskAPI::User.create(client, { name: name, phone: phone_number })
+		else
+			user = find_user_by_phone_number(phone_number)
+		end
+		user
+	end
+
+	def create_trigger title, conditions={}, actions=[]
+		ZendeskAPI::Trigger.create(client, {title: title, conditions: conditions, actions: actions})
+		# actions = [{field: "notification_target", value: ["20092202", "Ticket {{ticket.id}} has been updated."]}] # Use target as action
+		# ZendeskAPI::Trigger.create(z.client, {title: "Trigger from web API", conditions: {all: [{field: "status", operator: "is", value: "open"}]}, actions: [{field: "status", value: "solved"}]})
+	end
+
+	def create_target title, target_url, attribute, method
+		ZendeskAPI::Target.create(client, {type: "url_target", title: title, target_url: target_url, attribute: attribute, method: method})		
 	end
 end

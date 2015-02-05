@@ -1,8 +1,4 @@
 Rails.application.routes.draw do
-  resources :messages
-
-  resources :contacts
-
   root to: 'visitors#index'
   devise_for :users
 
