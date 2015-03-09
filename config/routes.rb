@@ -6,4 +6,6 @@ Rails.application.routes.draw do
 
   post "outbound" => "zendesk#outbound"
   post "inbound" => "zendesk#inbound"
+
+  post "send_location" => "branches#send_location"
 end

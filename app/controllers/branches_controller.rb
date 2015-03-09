@@ -1,5 +1,6 @@
 class BranchesController < ApplicationController
   before_action :set_branch, only: [:show, :edit, :update, :destroy]
+  skip_before_action :verify_authenticity_token
 
   respond_to :html
 
@@ -34,6 +35,12 @@ class BranchesController < ApplicationController
   def destroy
     @branch.destroy
     respond_with(@branch)
+  end
+
+  def send_location
+    branch = Branch.find_nearest params[:latitude], params[:longitude]
+    HTTParty.post("http://app.ongair.im/api/v1/base/send?token=#{ENV['ONGAIR_API_KEY']}", body: {phone_number: params[:phone_number], text: branch.address, thread: true})
+    render json: {success: true}
   end
 
   private
