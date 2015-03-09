@@ -1,0 +1,15 @@
+%p#notice= notice
+
+%p
+  %b Address:
+  = @branch.address
+%p
+  %b Latitude:
+  = @branch.latitude
+%p
+  %b Longitude:
+  = @branch.longitude
+
+= link_to 'Edit', edit_branch_path(@branch)
+\|
+= link_to 'Back', branches_path
