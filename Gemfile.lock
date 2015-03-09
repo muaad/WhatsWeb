@@ -101,6 +101,7 @@ GEM
     freshdesk (0.2)
       nokogiri
       rest-client
+    geocoder (1.2.7)
     haml (4.1.0.beta.1)
       tilt
     haml-rails (0.7.0)
@@ -295,6 +296,7 @@ DEPENDENCIES
   faker
   figaro
   freshdesk (~> 0.2)
+  geocoder
   haml-rails
   high_voltage
   html2haml

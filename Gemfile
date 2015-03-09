@@ -17,6 +17,7 @@ gem "zendesk_api"
 gem "httparty"
 gem 'figaro'
 gem 'freshdesk', '~> 0.2'
+gem 'geocoder'
 group :development do
   gem 'better_errors'
   gem 'binding_of_caller', :platforms=>[:mri_20]
