@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150511131634) do
+ActiveRecord::Schema.define(version: 20151008111930) do
 
   create_table "branches", force: true do |t|
     t.string   "address"
@@ -38,6 +38,14 @@ ActiveRecord::Schema.define(version: 20150511131634) do
   end
 
   add_index "subscriptions", ["plan_id"], name: "index_subscriptions_on_plan_id"
+
+  create_table "tickets", force: true do |t|
+    t.string   "phone_number"
+    t.string   "ticket_id"
+    t.string   "status"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "users", force: true do |t|
     t.string   "email",                  default: "", null: false
