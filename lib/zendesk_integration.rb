@@ -69,6 +69,16 @@ class ZendeskIntegration
 		end
 	end
 
+	def find_ticket_field title
+	  field = nil
+	  client.ticket_fields.all do |ticket_field|
+	    if ticket_field["title"] == title
+	      field = ticket_field
+	    end
+	  end
+	  field
+	end
+
 	def create_user name, phone_number
 		if find_user_by_phone_number(phone_number).nil?
 			user = ZendeskAPI::User.create(client, { name: name, phone: phone_number })
