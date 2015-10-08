@@ -1,0 +1,25 @@
+%h1 Listing plans
+
+%table
+  %thead
+    %tr
+      %th Name
+      %th Price
+      %th
+      %th
+      %th
+      %th
+      
+  %tbody
+    - @plans.each do |plan|
+      %tr
+        %td= plan.name
+        %td= plan.price
+        %td= link_to 'Show', plan
+        %td= link_to 'Edit', edit_plan_path(plan)
+        %td= link_to 'Destroy', plan, :method => :delete, :data => { :confirm => 'Are you sure?' }
+        %td= link_to "Sign up", new_subscription_path(:plan_id => plan.id)
+
+%br
+
+= link_to 'New Plan', new_plan_path

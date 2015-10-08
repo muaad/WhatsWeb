@@ -1,0 +1,23 @@
+= form_for @subscription do |f|
+  - if !@subscription.payment_provided?
+    = link_to image_tag("https://www.paypal.com/en_US/i/btn/btn_xpressCheckout.gif"), paypal_checkout_path(plan_id: @subscription.plan_id)
+    %a#pay
+  .field
+    = f.label :email
+    = f.text_field :email
+  .fields
+    = f.hidden_field :plan_id
+    = f.hidden_field :paypal_customer_token
+    = f.hidden_field :paypal_payment_token
+  .actions
+    = f.submit 'Subscribe'
+
+:javascript
+  window.paypalCheckoutReady = function() {
+    paypal.checkout.setup("78W72DT7WKJAW", {
+      locale: 'en_US',
+      environment: 'sandbox',
+      container: 'pay'
+    });
+  }
+%script{:async => "", :src => "www.paypalobjects.com/api/checkout.js"}

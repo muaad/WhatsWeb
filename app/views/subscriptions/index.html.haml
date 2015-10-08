@@ -1,0 +1,27 @@
+%h1 Listing subscriptions
+
+%table
+  %thead
+    %tr
+      %th Plan
+      %th Email
+      %th Paypal customer token
+      %th Paypal recurring profile token
+      %th
+      %th
+      %th
+      
+  %tbody
+    - @subscriptions.each do |subscription|
+      %tr
+        %td= subscription.plan
+        %td= subscription.email
+        %td= subscription.paypal_customer_token
+        %td= subscription.paypal_recurring_profile_token
+        %td= link_to 'Show', subscription
+        %td= link_to 'Edit', edit_subscription_path(subscription)
+        %td= link_to 'Destroy', subscription, :method => :delete, :data => { :confirm => 'Are you sure?' }
+
+%br
+
+= link_to 'New Subscription', new_subscription_path

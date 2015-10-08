@@ -1,0 +1,24 @@
+%p#notice= notice
+
+%p
+  %b Plan:
+  = @subscription.plan
+%p
+  %b Email:
+  = @subscription.email
+%p
+  %b Paypal customer token:
+  = @subscription.paypal_customer_token
+%p
+  %b Paypal recurring profile token:
+  = @subscription.paypal_recurring_profile_token
+
+= link_to 'Edit', edit_subscription_path(@subscription)
+\|
+= link_to 'Suspend', suspend_subscription_path(@subscription), method: 'post'
+\|
+= link_to 'Reactivate', reactivate_subscription_path(@subscription), method: 'post'
+\|
+= link_to 'Cancel', cancel_subscription_path(@subscription), method: 'post'
+\|
+= link_to 'Back', subscriptions_path

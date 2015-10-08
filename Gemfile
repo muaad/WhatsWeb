@@ -18,6 +18,11 @@ gem "httparty"
 gem 'figaro'
 gem 'freshdesk', '~> 0.2'
 gem 'geocoder'
+gem 'paypal-recurring'
+gem 'oauth2'
+gem 'desk'
+gem 'desk_api'
+gem 'yajl-ruby'
 group :development do
   gem 'better_errors'
   gem 'binding_of_caller', :platforms=>[:mri_20]

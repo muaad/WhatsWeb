@@ -13,3 +13,13 @@
     %main{:role => "main"}
       = render 'layouts/messages'
       = yield
+
+:javascript
+window.paypalCheckoutReady = function() {
+  paypal.checkout.setup("6XF3MPZBZV6HU", {
+    locale: 'en_US',
+    environment: 'sandbox',
+    container: ['t1', 't2']
+  });
+}
+%script{:async => "", :src => "//www.paypalobjects.com/api/checkout.js"}
