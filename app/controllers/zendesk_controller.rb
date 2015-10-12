@@ -27,9 +27,12 @@ class ZendeskController < ApplicationController
 		# phone_number = zendesk.find_ticket(params[:ticket].to_i)["custom_fields"][0].value
 		# zendesk.forward_ticket_updates phone_number, params[:comment]
 		account = Account.find_by ongair_phone_number: params[:account]
+		puts "\n\nAccount: #{account.ongair_phone_number}\n\n"
 		ticket_id = params[:freshdesk_webhook][:ticket_id]
 		comment = strip_html(params[:freshdesk_webhook][:ticket_latest_public_comment])
 		phone_number = Ticket.find_by(ticket_id: ticket_id, account: account).phone_number
+
+		puts "\n\nPhone number: #{phone_number}\n\n"
 
 		send_message phone_number, comment, account
 
