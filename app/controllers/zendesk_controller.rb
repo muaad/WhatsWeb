@@ -32,6 +32,8 @@ class ZendeskController < ApplicationController
 		comment = strip_html(params[:comment]) # params[:freshdesk_webhook][:ticket_latest_public_comment]
 		phone_number = Ticket.find_by(ticket_id: ticket_id, account: account).phone_number
 
+		puts "\n\nTicket ID: #{ticket_id}\n\n"
+		puts "\n\nComment: #{comment}\n\n"
 		puts "\n\nPhone number: #{phone_number}\n\n"
 
 		send_message phone_number, comment, account
