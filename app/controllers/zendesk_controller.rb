@@ -26,10 +26,10 @@ class ZendeskController < ApplicationController
 		# zendesk = ZendeskIntegration.new
 		# phone_number = zendesk.find_ticket(params[:ticket].to_i)["custom_fields"][0].value
 		# zendesk.forward_ticket_updates phone_number, params[:comment]
+		account = Account.find_by ongair_phone_number: params[:account]
 		ticket_id = params[:freshdesk_webhook][:ticket_id]
 		comment = strip_html(params[:freshdesk_webhook][:ticket_latest_public_comment])
-		phone_number = Ticket.find_by(ticket_id: ticket_id).phone_number
-		account = Account.find_by ongair_phone_number: params[:account]
+		phone_number = Ticket.find_by(ticket_id: ticket_id, account: account).phone_number
 
 		send_message phone_number, comment, account
 
@@ -41,7 +41,8 @@ class ZendeskController < ApplicationController
 	def status_change
 		ticket_id = params[:freshdesk_webhook][:ticket_id]
 		status = params[:freshdesk_webhook][:ticket_status]
-		ticket = Ticket.find_by(ticket_id: ticket_id)
+		account = Account.find_by ongair_phone_number: params[:account]
+		ticket = Ticket.find_by(ticket_id: ticket_id, account: account)
 		ticket.update(status: Ticket.get_status(status))
 
 		render json: { status: status}
