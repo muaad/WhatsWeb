@@ -28,8 +28,8 @@ class ZendeskController < ApplicationController
 		# zendesk.forward_ticket_updates phone_number, params[:comment]
 		account = Account.find_by ongair_phone_number: params[:account]
 		puts "\n\nAccount: #{account.ongair_phone_number}\n\n"
-		ticket_id = params[:freshdesk_webhook][:ticket_id]
-		comment = strip_html(params[:freshdesk_webhook][:ticket_latest_public_comment])
+		ticket_id = params[:ticket] #params[:freshdesk_webhook][:ticket_id]
+		comment = strip_html(params[:comment]) # params[:freshdesk_webhook][:ticket_latest_public_comment]
 		phone_number = Ticket.find_by(ticket_id: ticket_id, account: account).phone_number
 
 		puts "\n\nPhone number: #{phone_number}\n\n"
@@ -42,8 +42,8 @@ class ZendeskController < ApplicationController
 	end
 
 	def status_change
-		ticket_id = params[:freshdesk_webhook][:ticket_id]
-		status = params[:freshdesk_webhook][:ticket_status]
+		ticket_id = params[:ticket]  #[:freshdesk_webhook][:ticket_id]
+		status = params[:status]  # [:freshdesk_webhook][:ticket_status]
 		account = Account.find_by ongair_phone_number: params[:account]
 		ticket = Ticket.find_by(ticket_id: ticket_id, account: account)
 		ticket.update(status: Ticket.get_status(status))
