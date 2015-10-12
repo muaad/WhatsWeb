@@ -51,18 +51,18 @@ class ZendeskController < ApplicationController
 		fresh = FreshdeskIntegration.new
 		ticket = fresh.create_ticket description, "#{subject}##{customer.phone_number}", customer.email, account
 		ticket_id = ticket['helpdesk_ticket']['display_id']
-		Ticket.create! phone_number: customer.phone_number, customer: customer, ticket_id: ticket_id, status: ticket['helpdesk_ticket']['status']
+		Ticket.create! phone_number: customer.phone_number, customer: customer, ticket_id: ticket_id, status: ticket['helpdesk_ticket']['status'], account: account
 		send_message params[:phone_number], "Hi #{customer.name},\nThanks for getting in touch with us. Your reference ID is ##{ticket_id}. We will get back to you shortly.", account
 		{ message: "New ticket created", ticket: ticket }
 	end
 
 	def freshdesk
 		fresh = FreshdeskIntegration.new
-		tickets = Ticket.not_closed.where(phone_number: params[:phone_number])
+		account = Account.find_by ongair_phone_number: params[:account]
+		tickets = Ticket.unsolved_tickets account, params[:phone_number]
 		customer = Customer.find_or_create_by! phone_number: params[:phone_number]
 		customer.update name: params[:name]
 		customer.update email: "#{fresh.random_string}@#{fresh.random_string}.com" if customer.email.blank?
-		account = Account.find_by ongair_phone_number: params[:account]
 
 		if tickets.blank?
 			puts "\n\n>>>>>> No tickets found\n\n"
