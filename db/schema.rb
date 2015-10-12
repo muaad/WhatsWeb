@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151012093507) do
+ActiveRecord::Schema.define(version: 20151012115738) do
 
   create_table "accounts", force: true do |t|
     t.string   "ongair_phone_number"
@@ -63,8 +63,10 @@ ActiveRecord::Schema.define(version: 20151012093507) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "customer_id"
+    t.integer  "account_id"
   end
 
+  add_index "tickets", ["account_id"], name: "index_tickets_on_account_id"
   add_index "tickets", ["customer_id"], name: "index_tickets_on_customer_id"
 
   create_table "users", force: true do |t|
