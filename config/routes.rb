@@ -13,6 +13,8 @@ Rails.application.routes.draw do
   root to: 'visitors#index'
   devise_for :users
 
+  post "freshdesk" => "zendesk#freshdesk"
+  post "status_change" => "zendesk#status_change"
   post "outbound" => "zendesk#outbound"
   post "inbound" => "zendesk#inbound"
   post "notifications" => "desk#notifications"
