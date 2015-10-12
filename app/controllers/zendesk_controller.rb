@@ -3,6 +3,11 @@ require "freshdesk_integration"
 require 'oauth2'
 class ZendeskController < ApplicationController
 	skip_before_action :verify_authenticity_token
+
+	def send_message phone_number, message, account
+		HTTParty.post("https://app.ongair.im/api/v1/base/send?token=#{account.ongair_token}", body: {phone_number: phone_number, text: message, thread: true})
+	end
+
 	def oauth_client
 		client = OAuth2::Client.new('muaad',
 		  '590d1854ee07bb434a36dab3dd0d54c8bcd7b183357753bcc17407cfbff1cfe3',
@@ -10,13 +15,75 @@ class ZendeskController < ApplicationController
 		  token_url: "/oauth/tokens",
 		  authorize_url: "/oauth/authorizations/new")
 	end
+
+	def strip_html(str)
+	  document = Nokogiri::HTML.parse(str)
+	  document.css("br").each { |node| node.replace("\n") }
+	  document.text
+	end
+
 	def inbound
-		zendesk = ZendeskIntegration.new
-		phone_number = zendesk.find_ticket(params[:ticket].to_i)["custom_fields"][0].value
-		zendesk.forward_ticket_updates phone_number, params[:comment]
+		# zendesk = ZendeskIntegration.new
+		# phone_number = zendesk.find_ticket(params[:ticket].to_i)["custom_fields"][0].value
+		# zendesk.forward_ticket_updates phone_number, params[:comment]
+		ticket_id = params[:freshdesk_webhook][:ticket_id]
+		comment = strip_html(params[:freshdesk_webhook][:ticket_latest_public_comment])
+		phone_number = Ticket.find_by(ticket_id: ticket_id).phone_number
+		account = Account.find_by ongair_phone_number: params[:account]
+
+		send_message phone_number, comment, account
+
 		render json: {status: "recieved"}
 		# fresh = FreshdeskIntegration.new
 		# render json: {status: "recieved"}
+	end
+
+	def status_change
+		ticket_id = params[:freshdesk_webhook][:ticket_id]
+		status = params[:freshdesk_webhook][:ticket_status]
+		ticket = Ticket.find_by(ticket_id: ticket_id)
+		ticket.update(status: Ticket.get_status(status))
+
+		render json: { status: status}
+	end
+
+	def new_ticket description, subject, customer, account
+		fresh = FreshdeskIntegration.new
+		ticket = fresh.create_ticket description, "#{subject}##{customer.phone_number}", customer.email, account
+		ticket_id = ticket['helpdesk_ticket']['display_id']
+		Ticket.create! phone_number: customer.phone_number, customer: customer, ticket_id: ticket_id, status: ticket['helpdesk_ticket']['status']
+		send_message params[:phone_number], "Hi #{customer.name},\nThanks for getting in touch with us. Your reference ID is ##{ticket_id}. We will get back to you shortly.", account
+		{ message: "New ticket created", ticket: ticket }
+	end
+
+	def freshdesk
+		fresh = FreshdeskIntegration.new
+		tickets = Ticket.not_closed.where(phone_number: params[:phone_number])
+		customer = Customer.find_or_create_by! phone_number: params[:phone_number]
+		customer.update name: params[:name]
+		customer.update email: "#{fresh.random_string}@#{fresh.random_string}.com" if customer.email.blank?
+		account = Account.find_by ongair_phone_number: params[:account]
+
+		if tickets.blank?
+			puts "\n\n>>>>>> No tickets found\n\n"
+			response = new_ticket params[:text], "WhatsApp Ticket", customer, account
+		else
+			puts "\n\n>>>>>> Found a ticket\n\n"
+			ticket_id = tickets.last.ticket_id
+			ticket = fresh.find_ticket ticket_id, account
+			user_id = ticket['helpdesk_ticket']['requester_id']
+			if !ticket.blank?
+				if params[:notification_type] == "MessageReceived"
+					t = fresh.add_note ticket_id, params[:text], user_id, account
+				elsif params[:notification_type] == "ImageReceived"
+					t = fresh.add_note ticket_id, "Image Received", user_id, account, params[:image]
+				end
+				response = { message: "Comment added", ticket: t }
+			else
+				response = new_ticket params[:text], "WhatsApp Ticket", customer, account
+			end
+		end
+		render json: response
 	end
 
 	def outbound
