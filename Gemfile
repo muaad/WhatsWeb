@@ -15,6 +15,7 @@ gem 'haml-rails'
 gem 'high_voltage'
 gem "zendesk_api"
 gem "httparty"
+gem 'httmultiparty'
 gem 'figaro'
 gem 'freshdesk', '~> 0.2'
 gem 'geocoder'
