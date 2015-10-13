@@ -24,6 +24,7 @@ gem 'oauth2'
 gem 'desk'
 gem 'desk_api'
 gem 'yajl-ruby'
+gem 'rollbar'
 group :development do
   gem 'better_errors'
   gem 'binding_of_caller', :platforms=>[:mri_20]
