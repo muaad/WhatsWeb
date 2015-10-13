@@ -29,7 +29,7 @@ class ZendeskController < ApplicationController
 		account = Account.find_by ongair_phone_number: params[:account]
 		ticket_id = params[:freshdesk_webhook][:ticket_id]
 		comment = strip_html(params[:freshdesk_webhook][:ticket_latest_public_comment])
-		phone_number = Ticket.find_by(ticket_id: ticket_id, account: account).phone_number
+		phone_number = Ticket.find_by(ticket_id: ticket_id.to_s, account: account).phone_number
 
 		send_message phone_number, comment, account
 
