@@ -42,7 +42,7 @@ class ZendeskController < ApplicationController
 		ticket_id = params[:freshdesk_webhook][:ticket_id]
 		status = params[:freshdesk_webhook][:ticket_status]
 		account = Account.find_by ongair_phone_number: params[:account]
-		ticket = Ticket.find_by(ticket_id: ticket_id, account: account)
+		ticket = Ticket.find_by(ticket_id: ticket_id.to_s, account: account)
 		ticket.update(status: Ticket.get_status(status))
 
 		render json: { status: status}
