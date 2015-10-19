@@ -29,9 +29,12 @@ class ZendeskController < ApplicationController
 		account = Account.find_by ongair_phone_number: params[:account]
 		ticket_id = params[:freshdesk_webhook][:ticket_id]
 		comment = strip_html(params[:freshdesk_webhook][:ticket_latest_public_comment])
-		phone_number = Ticket.find_by(ticket_id: ticket_id.to_s, account: account).phone_number
+		ticket = Ticket.find_by(ticket_id: ticket_id.to_s, account: account)
 
-		send_message phone_number, comment, account
+		if !ticket.nil?
+			phone_number = ticket.phone_number
+			send_message phone_number, comment, account
+		end
 
 		render json: {status: "recieved"}
 		# fresh = FreshdeskIntegration.new
@@ -43,7 +46,7 @@ class ZendeskController < ApplicationController
 		status = params[:freshdesk_webhook][:ticket_status]
 		account = Account.find_by ongair_phone_number: params[:account]
 		ticket = Ticket.find_by(ticket_id: ticket_id.to_s, account: account)
-		ticket.update(status: Ticket.get_status(status))
+		ticket.update(status: Ticket.get_status(status)) if !ticket.nil?
 
 		render json: { status: status}
 	end
