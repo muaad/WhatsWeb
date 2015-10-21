@@ -51,7 +51,7 @@ class ZendeskController < ApplicationController
 		render json: { status: status}
 	end
 
-	def new_ticket description, subject, customer, account
+	def new_ticket description, subject, customer, account, tags=[]
 		fresh = FreshdeskIntegration.new
 		ticket = fresh.create_ticket description, "#{subject}##{customer.phone_number}", customer.email, account
 		ticket_id = ticket['helpdesk_ticket']['display_id']
@@ -70,7 +70,7 @@ class ZendeskController < ApplicationController
 
 		if tickets.blank?
 			puts "\n\n>>>>>> No tickets found\n\n"
-			response = new_ticket params[:text], "WhatsApp Ticket", customer, account
+			response = new_ticket params[:text], "WhatsApp Ticket", customer, account, ['ongair', customer.phone_number]
 		else
 			puts "\n\n>>>>>> Found a ticket\n\n"
 			ticket_id = tickets.last.ticket_id
@@ -84,7 +84,7 @@ class ZendeskController < ApplicationController
 				end
 				response = { message: "Comment added", ticket: t }
 			else
-				response = new_ticket params[:text], "WhatsApp Ticket", customer, account
+				response = new_ticket params[:text], "WhatsApp Ticket", customer, account, ['ongair', customer.phone_number]
 			end
 		end
 		render json: response

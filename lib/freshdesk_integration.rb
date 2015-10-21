@@ -35,6 +35,10 @@ class FreshdeskIntegration
 		HTTParty.get(url, {basic_auth: auth})
 	end
 
+	def create_survey ticket_id, account, rating="", feedback=""
+		post({feedback: feedback}, "#{account.freshdesk_url}/helpdesk/tickets/#{ticket_id}/surveys/rate.json?rating=#{rating}", account)
+	end
+
 	def create_contact name, email, account
 		post({"user[name]" => name, "user[email]" => email}, "#{account.freshdesk_url}/contacts.json", account)
 	end
@@ -44,23 +48,25 @@ class FreshdeskIntegration
 	  5.times.map { cs.sample }.join.downcase
 	end
 
-	def create_ticket description, subject, email, account, cc_emails=""
+	def create_ticket description, subject, email, account, tags=[]
 		body = {
 		  helpdesk_ticket: {
-	      description: description,
-	      subject: subject,
-	      email: email,
-	      priority: 1,
-	      status: 1
+		      description: description,
+		      subject: subject,
+		      email: email,
+		      priority: 1,
+		      status: 1
 		  }
 		}
-		post(body, "#{account.freshdesk_url}/helpdesk/tickets.json", account)
+		tags_query = tags.blank? ? "" : "?helpdesk[tags]=#{tags.join(",")}"
+		post(body, "#{account.freshdesk_url}/helpdesk/tickets.json#{tags_query}", account)
 		# `curl -u muaad@sprout.co.ke:freshbok24 -H "Content-Type: application/json" -d '{ "helpdesk_ticket": { "description": "Details about the issue...", "subject": "Support Needed...", "email": "mursal@outerspace.com", "priority": 1, "status": 2 }, "cc_emails": "mursal@freshdesk.com,mohaa@freshdesk.com" }' -X POST http://muaad.freshdesk.com/helpdesk/tickets.json`
 	end
 
 	def find_ticket id, account
 		get("#{account.freshdesk_url}/helpdesk/tickets/#{id}.json", account)
 	end
+	
 
 	def add_note ticket_id, note, user_id, account, attachment=""
 		body = {
@@ -71,11 +77,13 @@ class FreshdeskIntegration
 		    user_id: user_id
 		  }
 		}
-		post(body, "#{account.freshdesk_url}/helpdesk/tickets/#{ticket_id}/conversations/note.json", account)
 
 		if !attachment.blank?
-			body["helpdesk_note[attachments][resource]"] = attachment
-			post_multiparty(body, "#{account.freshdesk_url}/helpdesk/tickets/#{ticket_id}/conversations/note.json", account)
+			site = RestClient::Resource.new("#{account.freshdesk_url}/helpdesk/tickets/#{ticket_id}/conversations/note.json", account.freshdesk_api_key, "test")
+			temp = {body: note, 'private'=>false, incoming: true, user_id: user_id, attachments: {''=>[{resource: File.new(attachment, 'rb')}]}}
+			site.post({helpdesk_note: temp}, content_type: "application/json")
+		else
+			post(body, "#{account.freshdesk_url}/helpdesk/tickets/#{ticket_id}/conversations/note.json", account)
 		end
 	end
 
@@ -122,9 +130,9 @@ class FreshdeskIntegration
 	# 	`curl -u muaad@sprout.co.ke:freshbok24 -H "Content-Type: application/json" -X POST -d '{ "user": { "name":"Super Man", "email":"ram@freshdesk.com" }}' http://muaad.freshdesk.com/contacts.json`
 	# end
 
-	# def client
-	# 	Freshdesk.new("https://muaad.freshdesk.com/", "muaad@sprout.co.ke", "freshbok24")
-	# end
+	def client account
+		Freshdesk.new(account.freshdesk_url, account.freshdesk_api_key, "X")
+	end
 
 	# def create_user
 	# 	client.post_users(:name => "test", :email => "test@143124test.com", :customer => "name")
