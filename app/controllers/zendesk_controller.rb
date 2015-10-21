@@ -48,6 +48,13 @@ class ZendeskController < ApplicationController
 		ticket = Ticket.find_by(ticket_id: ticket_id.to_s, account: account)
 		ticket.update(status: Ticket.get_status(status)) if !ticket.nil?
 
+		if ticket.status == "5"
+			s = Survey.find_or_create_by! customer: ticket.customer, ticket: ticket, account: account
+			if !s.completed
+				send_message ticket.phone_number, "How would you rate our support? Reply with 1, 2 or 3. 1 being Excellent, 2 being Good and 3 being Bad. Thanks.", account
+			end
+		end
+
 		render json: { status: status}
 	end
 
@@ -68,23 +75,43 @@ class ZendeskController < ApplicationController
 		customer.update name: params[:name]
 		customer.update email: "#{fresh.random_string}@#{fresh.random_string}.com" if customer.email.blank?
 
-		if tickets.blank?
-			puts "\n\n>>>>>> No tickets found\n\n"
-			response = new_ticket params[:text], "WhatsApp Ticket", customer, account, ['ongair', customer.phone_number]
-		else
-			puts "\n\n>>>>>> Found a ticket\n\n"
-			ticket_id = tickets.last.ticket_id
-			ticket = fresh.find_ticket ticket_id, account
-			user_id = ticket['helpdesk_ticket']['requester_id']
-			if !ticket.blank?
-				if params[:notification_type] == "MessageReceived"
-					t = fresh.add_note ticket_id, params[:text], user_id, account
-				elsif params[:notification_type] == "ImageReceived"
-					t = fresh.add_note ticket_id, "Image Received", user_id, account, params[:image]
+		s = customer.surveys.where(account: account).last
+
+		if !s.nil? && !s.completed
+			if s.rating.blank?
+				if ['1', '2', '3'].include?(params[:text])
+					s.update rating: params[:text].to_i
+					send_message customer.phone_number, "Thanks for the rating. Can you add a quick comment on the quality of our service?", account
+				else
+					send_message customer.phone_number, "Please reply with 1, 2 or 3. 1 being Excellent, 2 being Good and 3 being Bad. Thanks.", account
 				end
-				response = { message: "Comment added", ticket: t }
 			else
+				# if s.comment.blank?
+					s.update comment: params[:text]
+					fresh.create_survey s.ticket.ticket_id, account, s.rating, s.comment
+					s.update completed: true
+					send_message customer.phone_number, "Thanks for the feedback. We will act on it.", account
+				# end
+			end
+		else
+			if tickets.blank?
+				puts "\n\n>>>>>> No tickets found\n\n"
 				response = new_ticket params[:text], "WhatsApp Ticket", customer, account, ['ongair', customer.phone_number]
+			else
+				puts "\n\n>>>>>> Found a ticket\n\n"
+				ticket_id = tickets.last.ticket_id
+				ticket = fresh.find_ticket ticket_id, account
+				user_id = ticket['helpdesk_ticket']['requester_id']
+				if !ticket.blank?
+					if params[:notification_type] == "MessageReceived"
+						t = fresh.add_note ticket_id, params[:text], user_id, account
+					elsif params[:notification_type] == "ImageReceived"
+						t = fresh.add_note ticket_id, "Image Received", user_id, account, params[:image]
+					end
+					response = { message: "Comment added", ticket: t }
+				else
+					response = new_ticket params[:text], "WhatsApp Ticket", customer, account, ['ongair', customer.phone_number]
+				end
 			end
 		end
 		render json: response
