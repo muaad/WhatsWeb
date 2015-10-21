@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151012115738) do
+ActiveRecord::Schema.define(version: 20151021130402) do
 
   create_table "accounts", force: true do |t|
     t.string   "ongair_phone_number"
@@ -55,6 +55,21 @@ ActiveRecord::Schema.define(version: 20151012115738) do
   end
 
   add_index "subscriptions", ["plan_id"], name: "index_subscriptions_on_plan_id"
+
+  create_table "surveys", force: true do |t|
+    t.integer  "customer_id"
+    t.integer  "ticket_id"
+    t.integer  "account_id"
+    t.integer  "rating"
+    t.string   "comment"
+    t.boolean  "completed",   default: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "surveys", ["account_id"], name: "index_surveys_on_account_id"
+  add_index "surveys", ["customer_id"], name: "index_surveys_on_customer_id"
+  add_index "surveys", ["ticket_id"], name: "index_surveys_on_ticket_id"
 
   create_table "tickets", force: true do |t|
     t.string   "phone_number"
